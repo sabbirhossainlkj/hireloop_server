@@ -58,18 +58,34 @@ async function run() {
       const query = { token: token };
       const session = await sessionCollection.findOne(query);
       const userId = session.userId;
-
+// console.log(userId)
       const userQuery = {
         _id: userId,
       };
       const user = await userCollection.findOne(userQuery);
+      // console.log(user)
       //  set data in the req object
       req.user = user;
       next();
     };
-
+    // must be used after verify token middleware
     const verifySeeker = async (req, res, next) => {
-      if (!req.user?.role !== "seeker") {
+      if (req.user?.role !== "seeker") {
+        return res.status(403).send({ message: "for bidden access" });
+      }
+      next();
+    };
+
+    // must be used after verify token middleware
+    const verifyRecruiter = async (req, res, next) => {
+      if (req.user?.role !== "recruiter") {
+        return res.status(403).send({ message: "for bidden access" });
+      }
+      next();
+    };
+    // must be used after verify token middleware
+    const verifyAdmin = async (req, res, next) => {
+      if (req.user?.role !== "admin") {
         return res.status(403).send({ message: "for bidden access" });
       }
       next();
@@ -121,21 +137,30 @@ async function run() {
 
     // job applications
     // job applications get
-    app.get("/api/applications", verifyToken, verifySeeker, async (req, res) => {
-      const query = {};
-      if (req.query.applicantId) {
-        query.applicantId = req.query.applicantId;
-
-        // check whether asking for user information or someone else
-          console.log(req.user, req.query.applicantId)
-      }
-      if (req.query.jobId) {
-        query.jobId = req.query.jobId;
-      }
-      const cursor = applicationCollection.find(query);
-      const result = await cursor.toArray();
-      res.send(result);
-    });
+    app.get(
+      "/api/applications",
+      verifyToken,
+      verifySeeker,
+      async (req, res) => {
+        const query = {};
+        if (req.query.applicantId) {
+          query.applicantId = req.query.applicantId;
+  console.log(req.user._id)
+  console.log(req.query.applicantId)
+          // check whether asking for user information or someone else
+          console.log(req.user, req.query.applicantId);
+          if (req.user._id.toString() !== req.query.applicantId) {
+            return res.status(403).send({ message: "for bidden access" });
+          }
+        }
+        if (req.query.jobId) {
+          query.jobId = req.query.jobId;
+        }
+        const cursor = applicationCollection.find(query);
+        const result = await cursor.toArray();
+        res.send(result);
+      },
+    );
 
     // job applications post
     app.post("/api/applications", async (req, res) => {
@@ -195,7 +220,7 @@ async function run() {
     });
 
     // patch companies
-    app.patch("/api/companies/:id", logger, verifyToken, async (req, res) => {
+    app.patch("/api/companies/:id", logger, verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       console.log(id, "approve id");
       const updatedCompany = req.body;
