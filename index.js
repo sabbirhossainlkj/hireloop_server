@@ -18,19 +18,6 @@ const logger = (req, res, next) => {
   next();
 };
 
-const verifyToken = (req, res, next) => {
-  console.log("headers", req.headers);
-  const authHeader = req.headers?.authorization;
-  if (!authHeader) {
-    return res.status(401).send({ message: "unauthorized access" });
-  }
-  const token = authHeader.split(' ')[1]
-  if(!token){
-    return res.status(401).send({message: 'unauthorized access'})
-  }
-  next();
-};
-
 // mongodb connection
 
 const uri = process.env.MONGODB_URI;
@@ -56,6 +43,20 @@ async function run() {
     const applicationCollection = database.collection("applications");
     const planCollection = database.collection("plans");
     const subscriptionCollection = database.collection("subscriptions");
+
+    // verification related
+    const verifyToken = (req, res, next) => {
+      const authHeader = req.headers?.authorization;
+      if (!authHeader) {
+        return res.status(401).send({ message: "unauthorized access" });
+      }
+      const token = authHeader.split(" ")[1];
+      if (!token) {
+        return res.status(401).send({ message: "unauthorized access" });
+      }
+      const query = { token: token };
+      next();
+    };
 
     // user
     // get user
