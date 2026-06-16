@@ -58,7 +58,20 @@ async function run() {
       const query = { token: token };
       const session = await sessionCollection.findOne(query);
       const userId = session.userId;
-      console.log("user in of the session", userId);
+
+      const userQuery = {
+        _id: userId,
+      };
+      const user = await userCollection.findOne(userQuery);
+      //  set data in the req object
+      req.user = user;
+      next();
+    };
+
+    const verifySeeker = async (req, res, next) => {
+      if (!req.user?.role !== "seeker") {
+        return res.status(403).send({ message: "for bidden access" });
+      }
       next();
     };
 
@@ -108,10 +121,13 @@ async function run() {
 
     // job applications
     // job applications get
-    app.get("/api/applications", async (req, res) => {
+    app.get("/api/applications", verifyToken, verifySeeker, async (req, res) => {
       const query = {};
       if (req.query.applicantId) {
         query.applicantId = req.query.applicantId;
+
+        // check whether asking for user information or someone else
+          console.log(req.user, req.query.applicantId)
       }
       if (req.query.jobId) {
         query.jobId = req.query.jobId;
