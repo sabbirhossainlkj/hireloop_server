@@ -46,7 +46,7 @@ async function run() {
     const sessionCollection = database.collection("session");
 
     // verification related
-    const verifyToken = (req, res, next) => {
+    const verifyToken = async (req, res, next) => {
       const authHeader = req.headers?.authorization;
       if (!authHeader) {
         return res.status(401).send({ message: "unauthorized access" });
@@ -56,6 +56,8 @@ async function run() {
         return res.status(401).send({ message: "unauthorized access" });
       }
       const query = { token: token };
+      const session = await sessionCollection.findOne(query);
+      console.log(session);
       next();
     };
 
