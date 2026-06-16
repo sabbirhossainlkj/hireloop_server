@@ -43,6 +43,7 @@ async function run() {
     const applicationCollection = database.collection("applications");
     const planCollection = database.collection("plans");
     const subscriptionCollection = database.collection("subscriptions");
+    const sessionCollection = database.collection("session");
 
     // verification related
     const verifyToken = (req, res, next) => {
