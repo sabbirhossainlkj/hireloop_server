@@ -24,6 +24,7 @@ const verifyToken = (req, res, next) => {
   if (!authHeader) {
     return res.status(401).send({ message: "unauthorized access" });
   }
+  const token = authHeader.split(' ')[1]
   next();
 };
 
