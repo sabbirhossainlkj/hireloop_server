@@ -57,7 +57,8 @@ async function run() {
       }
       const query = { token: token };
       const session = await sessionCollection.findOne(query);
-      console.log(session);
+      const userId = session.userId;
+      console.log("user in of the session", userId);
       next();
     };
 
